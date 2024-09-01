@@ -1,4 +1,17 @@
 import { MouseEvent, useState } from "react";
+import styles from "./ListGroup.module.css";
+
+import styled from "styled-components";
+
+const List = styled.ul`
+    list-style-type: none;
+    font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
+        "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
+`;
+
+const ListItem = styled.li`
+    background-color: antiquewhite;
+`;
 
 interface Props {
     cities: string[];
@@ -13,9 +26,10 @@ function ListGroup({ cities, heading, onSelectItem }: Props) {
         <>
             <h1>{heading}</h1>
             {cities.length === 0 && <p>No item found!</p>}
-            <ul className="list-group">
+            {/* <ul className={[styles.listGroup, styles.container].join(" ")}> */}
+            <List>
                 {cities.map((city, index) => (
-                    <li
+                    <ListItem
                         className={
                             selectedItem === index
                                 ? "list-group-item active"
@@ -28,9 +42,9 @@ function ListGroup({ cities, heading, onSelectItem }: Props) {
                         }}
                     >
                         {city}
-                    </li>
+                    </ListItem>
                 ))}
-            </ul>
+            </List>
         </>
     );
 }
