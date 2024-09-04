@@ -1,0 +1,11 @@
+.listGroup {
+    list-style-type: none;
+    font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
+        "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
+}
+
+.container {
+    background-color: antiquewhite;
+    padding: 2rem;
+    margin: 0 auto;
+}
