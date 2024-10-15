@@ -1,0 +1,1851 @@
+ListGroup componenets: 
+
+
+import { MouseEvent, ReactNode, useState } from "react";
+
+interface Props {
+    ara: string[];
+    heading: string;
+    onSelectItem: (item: string, index: number) => void;
+    onSelectIndex: (index: number) => string;
+}
+
+function ListGroup({ ara, heading, onSelectItem, onSelectIndex }: Props) {
+    const isListEmpty = (any: ReactNode) => {
+        return ara.length === 0 && <p>No item found in the list :( {any}</p>;
+    };
+    return (
+        <>
+            <h1>{heading}</h1>
+            {isListEmpty(1)}
+            <ul className="list-group">
+                {ara.map((ll, index) => (
+                    <li
+                        key={ll}
+                        className={onSelectIndex(index)}
+                        onClick={() => {
+                            // setSelectedIndex(index);
+                            onSelectItem(ll, index);
+                        }}
+                    >
+                        {ll}
+                    </li>
+                ))}
+            </ul>
+        </>
+    );
+}
+
+export default ListGroup;
+
+
+
+---------------------------------
+
+
+App.tsx : 
+
+
+import React, { useState } from "react";
+import "bootstrap/dist/css/bootstrap.css";
+
+import ListGroup from "./components/ListGroup";
+
+function App() {
+    let list = ["New York", "Dhaka", "Dubai", "Jakarta"];
+
+    const handleItem = (selectedItem: string, index: number) => {
+        setIndex(index);
+    };
+
+    const [index, setIndex] = useState(-1);
+
+    const handleIndex = (givenIndex: number) => {
+        if (givenIndex == index) return "list-group-item active";
+
+        return "list-group-item";
+    };
+
+    return (
+        <div>
+            <ListGroup
+                ara={list}
+                heading={"Cities"}
+                onSelectItem={handleItem}
+                onSelectIndex={handleIndex}
+            />
+        </div>
+    );
+}
+
+export default App;
+
+
+
+
+
+
+
+
+
+
+---------------------------------------
+################ Void props: 
+
+import React, { useState } from "react";
+import "bootstrap/dist/css/bootstrap.css";
+
+import Alert from "./components/Alert";
+import Button from "./components/Button";
+
+function App() {
+    // const alertList = ["First Alert", "2nd Alert", "3rd Alert"];
+
+    const [alert, setAlert] = useState(false);
+
+    // const handleButton = () => {
+    //     console.log("hello" + alert);
+    //     if (alert == false) setAlert(true);
+    // };
+
+    // const handleAlert = () => {
+    //     if (alert) setAlert(false);
+    // };
+
+    return (
+        <div>
+            {alert && <Alert hideAlert={() => setAlert(false)}>My Alert</Alert>}
+            <Button color="danger" showAlert={() => setAlert(true )}>
+                Button to show alert !
+            </Button>
+        </div>
+    );
+}
+
+export default App;
+
+
+########################
+
+
+import { useState } from "react";
+
+interface Props {
+    children: string;
+    color?: "primary" | "secondary" | "danger";
+    showAlert: () => void;
+}
+
+const Button = ({ children, showAlert, color = "primary" }: Props) => {
+    return (
+        <>
+            <div className={"btn btn-" + color} onClick={showAlert}>
+                {children}
+            </div>
+        </>
+    );
+};
+
+export default Button;
+
+
+
+########################
+
+
+import { ReactNode } from "react";
+
+interface Props {
+    children: ReactNode;
+    hideAlert: () => void;
+}
+
+const Alert = ({ children, hideAlert }: Props) => {
+    return (
+        <>
+            <div className="alert alert-primary alert-dismissible" role="alert">
+                {children}
+                <button
+                    type="button"
+                    className="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Close"
+                    onClick={hideAlert}
+                ></button>
+            </div>
+        </>
+    );
+};
+
+export default Alert;
+
+
+-------------- 
+
+#### Updating an object : 
+
+import React, { useState } from "react";
+import "bootstrap/dist/css/bootstrap.css";
+
+import Alert from "./components/Alert";
+import Button from "./components/Button";
+
+function App() {
+    const [person, setPerson] = useState({
+        name: "Tanjim",
+        age: 24,
+    });
+    const handleClick = () => {
+        const newPerson = {
+            ...person,
+            age: person.age + 1,
+        };
+        setPerson(newPerson);
+        setPerson({ ...person, age: person.age + 1 });
+    };
+    return (
+        <>
+            <div>
+                {person.name} {person.age}
+            </div>
+            <div>
+                <button onClick={handleClick}>Click Me </button>
+            </div>
+        </>
+    );
+}
+
+export default App;
+
+
+-------------------
+
+#### Updating Nested Objects: 
+
+import React, { useState } from "react";
+import "bootstrap/dist/css/bootstrap.css";
+
+import Alert from "./components/Alert";
+import Button from "./components/Button";
+
+function App() {
+    const [person, setPerson] = useState({
+        name: "Tanjim",
+        age: 24,
+        address: {
+            street: "Baker Street",
+            city: "London",
+            zipcode: 9900,
+            alternateAddress: {
+                street: "Haponer More",
+                city: "Pabna",
+                zipcode: 6600,
+            },
+        },
+    });
+    const handleClick = () => {
+        /*        const newPerson = {
+            ...person,
+            age: person.age + 1,
+            address: {
+                ...person.address,
+                zipcode: person.address.zipcode + 1,
+            },
+        };*/
+        const newPerson = {
+            ...person,
+            age: person.age,
+            address: {
+                ...person.address,
+                city: "The city of the clock",
+                alternateAddress: {
+                    ...person.address.alternateAddress,
+                    city: "My City  ",
+                },
+            },
+        };
+        setPerson(newPerson);
+    };
+    return (
+        <>
+            <div>
+                {person.name} {person.age} {person.address.street}{" "}
+                {person.address.city} {person.address.zipcode}{" "}
+                {person.address.alternateAddress.street}{" "}
+                {person.address.alternateAddress.city} {person.address.alternateAddress.zipcode}
+            </div>
+            <div>
+                <button onClick={handleClick}>Click Me </button>
+            </div>
+        </>
+    );
+}
+
+export default App;
+
+
+
+----------------------------------------------------
+
+### Updating an array:
+
+import React, { useState } from "react";
+import "bootstrap/dist/css/bootstrap.css";
+
+import Alert from "./components/Alert";
+import Button from "./components/Button";
+
+function App() {
+    const [tags, setTag] = useState(["exciting", "happy", "sad"]);
+    const handleClick = () => {
+        // Adding an element:
+        // let newTag = [...tags, "anxious"];
+
+        // Remove an element:
+        // const newTag = tags.filter(tag => tag != 'happy');
+
+        //* Updating an element:
+        const newTag = tags.map((tag) => (tag == "happy" ? "happiness" : tag));
+
+        setTag(newTag);
+    };
+    return (
+        <>
+            <div>
+                <ul style={{ listStyle: "none" }}>
+                    {tags.map((tag) => (
+                        <li key={tag}>{tag}</li>
+                    ))}
+                </ul>
+            </div>
+            <div>
+                <button onClick={handleClick}>Click Me</button>
+            </div>
+        </>
+    );
+}
+
+export default App;
+
+
+--------------------->
+
+########### Updating an array of objects: 
+
+import React, { useState } from "react";
+import "bootstrap/dist/css/bootstrap.css";
+
+import Alert from "./components/Alert";
+import Button from "./components/Button";
+
+function App() {
+    const [tags, setTag] = useState([
+        { id: 1, name: "Implement an api for reviews", fixed: false },
+        { id: 2, name: "Fix the api for cart", fixed: false },
+    ]);
+    const handleClick = () => {
+        //* Updating the object
+        const newTags = tags.map((tag) =>
+            tag.id == 1 ? { ...tag, fixed: true } : tag
+        );
+        setTag(newTags);
+    };
+    return (
+        <>
+            <div>
+                <ul style={{ listStyle: "none" }}>
+                    {tags.map((tag) => (
+                        <li key={tag.id}>
+                            {tag.fixed == false ? "false" : "true"}
+                        </li>
+                    ))}
+                </ul>
+            </div>
+            <div>
+                <button onClick={handleClick}>Click Me</button>
+            </div>
+        </>
+    );
+}
+
+export default App;
+
+
+
+----------------------
+########### Sharing state between components:
+
+import React, { useState } from "react";
+import "bootstrap/dist/css/bootstrap.css";
+import produce from "immer";
+
+import Navbar from "./components/Navbar";
+import Cart from "./components/Cart";
+
+function App() {
+    const [cartItems, setCartItems] = useState([
+        "PS5",
+        "Gephyrus G16 laptop",
+        "Logitech gaming gears",
+    ]);
+    return (
+        <>
+            <Navbar cartItemCount={cartItems.length}></Navbar>
+            <Cart
+                cartItems={cartItems}
+                clearItems={() => setCartItems([])}
+            ></Cart>
+        </>
+    );
+}
+
+export default App;
+
+---
+
+
+import React from "react";
+
+interface Props {
+    cartItems: string[];
+    clearItems: () => void;
+}
+
+const Cart = ({ cartItems, clearItems }: Props) => {
+    return (
+        <>
+            <div>Cart:</div>
+            <div>
+                <ul>
+                    {cartItems.map((item) => (
+                        <li key={item}>{item}</li>
+                    ))}
+                </ul>
+            </div>
+            <button onClick={clearItems}>Clear</button>
+        </>
+    );
+};
+
+export default Cart;
+
+---
+
+
+import React from "react";
+
+interface Props {
+    cartItemCount: number;
+}
+
+const Navbar = (props: Props) => {
+    return <div>Navbar: {props.cartItemCount}</div>;
+};
+
+export default Navbar;
+
+
+----------------------
+
+
+
+
+
+############ Using Ref Hook for Form:
+
+import React, { FormEvent, useRef } from "react";
+
+const Form = () => {
+    const nameRef = useRef<HTMLInputElement>(null);
+    const ageRef = useRef<HTMLInputElement>(null);
+    const person = { name: '', age: 0 }
+
+    const handleSubmit = (event: FormEvent) => {
+        event.preventDefault();
+        // console.log(event);
+        if (nameRef.current != null)
+            person.name = nameRef.current.value;
+        if (ageRef.current != null)
+            person.age = parseInt(ageRef.current.value);
+
+        console.log(person);
+        
+    };
+
+    return (
+        <form onSubmit={handleSubmit}>
+            <div className="mb-3">
+                <label htmlFor="name" className="form-label">
+                    Name
+                </label>
+                <input
+                    ref={nameRef}
+                    id="name"
+                    type="text"
+                    className="form-control"
+                />
+            </div>
+            <div className="mb-3">
+                <label htmlFor="age" className="form-label">
+                    Age
+                </label>
+                <input
+                    ref={ageRef}
+                    id="age"
+                    type="number"
+                    className="form-control"
+                />
+            </div>
+            <button className="btn btn-primary" type="submit">
+                Submit
+            </button>
+        </form>
+    );
+};
+
+export default Form;
+
+
+
+---------------------------------
+
+###### Using `useState` for Form:
+
+
+
+import React, { FormEvent, useRef, useState } from "react";
+
+const Form = () => {
+    const [person, setPerson] = useState({ name: "", age: '' });
+
+    const handleSubmit = (event: FormEvent) => {
+        event.preventDefault();
+        console.log(person);
+    };
+
+    return (
+        <form onSubmit={handleSubmit}>
+            <div className="mb-3">
+                <label htmlFor="name" className="form-label">
+                    Name
+                </label>
+                <input
+                    onChange={(event) => {
+                        console.log(event.target.value);
+                        setPerson({ ...person, name: event.target.value });
+                    }}
+                    value={person.name}
+                    id="name"
+                    type="text"
+                    className="form-control"
+                />
+            </div>
+            <div className="mb-3">
+                <label htmlFor="age" className="form-label">
+                    Age
+                </label>
+                <input
+                    onChange={(event) => {
+                        console.log(event.target.value);
+                        setPerson({
+                            ...person,
+                            age: parseInt(event.target.value),
+                        });
+                    }}
+                    value={person.age}
+                    id="age"
+                    type="number"
+                    className="form-control"
+                />
+            </div>
+            <button className="btn btn-primary" type="submit">
+                Submit
+            </button>
+        </form>
+    );
+};
+
+export default Form;
+
+
+
+----------------------------
+
+
+##### Using React Hook Form for form:
+
+import React from "react";
+import { FieldValues, useForm } from "react-hook-form";
+
+interface Props {
+    expenseForm: (ob: any) => void;
+}
+
+const ExpenseTrackerForm = ({ expenseForm }: Props) => {
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+        resetField,
+    } = useForm();
+
+    const onSubmit = (data: any) => {
+        expenseForm(data);
+        resetField("description");
+        resetField("amount");
+        resetField("category");
+    };
+
+    return (
+        <form onSubmit={handleSubmit(onSubmit)}>
+            <div className="mb-3">
+                <label htmlFor="description" className="form-label">
+                    Description
+                </label>
+                <input
+                    {...register("description", { required: true })}
+                    id="description"
+                    type="text"
+                    className="form-control"
+                />
+                {errors.description?.type === "required" && (
+                    <p className="text-danger">Description is required</p>
+                )}
+            </div>
+            <div className="mb-3">
+                <label htmlFor="amount" className="form-label">
+                    Amount
+                </label>
+                <input
+                    {...register("amount", { required: true })}
+                    id="amount"
+                    type="number"
+                    className="form-control"
+                />
+                {errors.amount?.type === "required" && (
+                    <p className="text-danger">Amount is required</p>
+                )}
+            </div>
+            <div className="mb-3">
+                <label htmlFor="category" className="form-label">
+                    Category
+                </label>
+                <select
+                    {...register("category", { required: true })}
+                    id="category"
+                    className="form-control"
+                >
+                    <option value=""></option>
+                    <option value="Groceries">Groceries</option>
+                    <option value="Entertainment">Entertainment</option>
+                    <option value="Utilities">Utilities</option>
+                </select>
+                {errors.category?.type === "required" && (
+                    <p className="text-danger">Category is required</p>
+                )}
+            </div>
+            <button type="submit" className="btn btn-primary">
+                Save
+            </button>
+        </form>
+    );
+};
+
+export default ExpenseTrackerForm;
+
+
+
+### Completed a simple project called expense tracker.
+
+
+----------------------------------------------
+----------------------------------------------
+----------------------------------------------
+
+
+*** New Section: Connecting to the backend:
+
+
+
+#1: Using the useEffect : `useEffect` or effect hook (as in state-hook or ref-hook) tells react to execute a piece of code after a component is rendered:
+
+import React, { useEffect, useRef } from "react";
+
+import "bootstrap/dist/css/bootstrap.css";
+
+const App = () => {
+    const ref = useRef<HTMLInputElement>(null);
+
+    // It gets executed after each render
+    useEffect(() => {
+        if (ref.current) ref.current.focus();
+    });
+
+    useEffect(() => {
+        document.title = "My next app";
+    });
+
+    return (
+        <div>
+            <input ref={ref} type="text" className="form-control" />
+        </div>
+    );
+};
+
+export default App;
+
+----------------------------------------------
+----------------------------------------------
+
+#2: 
+
+// By default effect hook executes after each render, sometimes we want to have more control over it...
+// Like execute an effect hook only once, or it should execute if a specific state change, in order to do that: 
+// We need to pass a list of dependencies, if any of the value updates or changes in any way, that effect-hook will execute.
+
+// *** If an empty is list if passed, then that effect-hook will execute only once.
+
+import React, { useEffect, useState } from "react";
+
+const ProductList = ({ category }: { category: string }) => {
+    const [products, setProducts] = useState<string[]>([]);
+    
+    useEffect(() => {
+        console.log("Fetching products from : " + category);
+        setProducts(["Electronics", "Grooming"]);
+    }, [category]);
+
+    return <div>ProductList</div>;
+};
+
+export default ProductList;
+
+###################
+
+import React, { useEffect, useRef, useState } from "react";
+
+import "bootstrap/dist/css/bootstrap.css";
+
+import ProductList from "./components/ProductList";
+
+const App = () => {
+    const [category, setCategory] = useState("");
+
+    return (
+        <div>
+            <select
+                className="form-select"
+                onChange={(event) => {
+                    setCategory(event.target.value);
+                }}
+            >
+                <option value=""></option>
+                <option value="Clothing">Clothing</option>
+                <option value="Electronics">Electronics</option>
+            </select>
+            <ProductList category={category} />
+        </div>
+    );
+};
+
+export default App;
+
+----------------------------------------------
+----------------------------------------------
+
+#3: Effect clean up: 
+
+import React, { useEffect, useRef, useState } from "react";
+
+import "bootstrap/dist/css/bootstrap.css";
+
+import ProductList from "./components/ProductList";
+
+const App = () => {
+    const [category, setCategory] = useState("");
+    const connect = () => console.log("Connecting");
+    const disconnect = () => console.log("Disconnecting");
+
+    useEffect(() => {
+        connect();
+
+        return () => disconnect();
+    });
+    return <div></div>;
+};
+
+export default App;
+
+
+----------------------------------------------
+----------------------------------------------
+
+#4: Fetching data: Fetching data using `axios`
+
+import React, { useEffect, useRef, useState } from "react";
+import axios from "axios";
+
+import "bootstrap/dist/css/bootstrap.css";
+
+import ProductList from "./components/ProductList";
+
+interface User {
+    id: number;
+    name: string;
+}
+
+const App = () => {
+    const [users, setUsers] = useState<User[]>([]);
+
+    useEffect(() => {
+        axios
+            .get<User[]>("https://jsonplaceholder.typicode.com/users")
+            .then((res) => setUsers(res.data)).catch((err) => console.log(err));
+    }, []);
+
+    return (
+        <>
+            <div>
+                <ul>
+                    {users.map((user) => (
+                        <li key={user.id}>{user.name}</li>
+                    ))}
+                </ul>
+            </div>
+        </>
+    );
+};
+
+export default App;
+
+
+----------------------------------------------
+----------------------------------------------
+
+#4: Fetching data: Fetching data using `axios` along with await & async 
+// (working with await & async is kind of verbose, so in the future we'll work with then & catch):
+
+import React, { useEffect, useRef, useState } from "react";
+import axios, { AxiosError } from "axios";
+
+import "bootstrap/dist/css/bootstrap.css";
+
+import ProductList from "./components/ProductList";
+
+interface User {
+    id: number;
+    name: string;
+}
+
+const App = () => {
+    const [users, setUsers] = useState<User[]>([]);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const res = await axios.get<User[]>(
+                    "https://jsonplaceholder.typicode.com/users"
+                );
+
+                setUsers(res.data);
+            } catch (err) {
+                console.log((err as AxiosError).message);
+            }
+        };
+
+        fetchUser();
+    });
+
+    return (
+        <>
+            <div>
+                <ul>
+                    {users.map((user) => (
+                        <li key={user.id}>{user.name}</li>
+                    ))}
+                </ul>
+            </div>
+        </>
+    );
+};
+
+export default App;
+
+
+----------------------------------------------
+----------------------------------------------
+
+#5: Showing loading indicator: 
+
+import React, { useEffect, useRef, useState } from "react";
+import axios, { AxiosError, CanceledError } from "axios";
+
+import "bootstrap/dist/css/bootstrap.css";
+
+import ProductList from "./components/ProductList";
+
+interface User {
+    id: number;
+    name: string;
+}
+
+const App = () => {
+    const [users, setUsers] = useState<User[]>([]);
+    const [error, setError] = useState("");
+    const [isLoading, setLoading] = useState<boolean>();
+
+    useEffect(() => {
+        const controller = new AbortController();
+        setLoading(true);
+        axios
+            .get<User[]>("https://jsonplaceholder.typicode.com/users", {
+                signal: controller.signal,
+            })
+            .then((res) => {
+                setUsers(res.data);
+                setLoading(false);
+            })
+            .catch((err) => {
+                if (err instanceof CanceledError) return;
+
+                setError(err.message);
+                setLoading(false);
+            });
+        // .finally(() => {
+        //     setLoading(false);
+        // });
+
+        return () => controller.abort();
+    }, []);
+
+    return (
+        <>
+            <div>
+                {error && <p>{error}</p>}
+                {isLoading && <div className="spinner-border"></div>}
+                <ul>
+                    {users.map((user) => (
+                        <li key={user.id}>{user.name}</li>
+                    ))}
+                </ul>
+            </div>
+        </>
+    );
+};
+
+export default App;
+
+
+
+----------------------------------------------
+----------------------------------------------
+
+#6: Fetching, Creating, Updating & Deleting data : 
+
+import React, { useEffect, useRef, useState } from "react";
+import axios, { AxiosError, CanceledError } from "axios";
+
+import "bootstrap/dist/css/bootstrap.css";
+
+interface User {
+    id: number;
+    name: string;
+}
+
+const App = () => {
+    const [users, setUsers] = useState<User[]>([]);
+    const [error, setError] = useState("");
+    const [isLoading, setLoading] = useState<boolean>();
+
+    useEffect(() => {
+        const controller = new AbortController();
+        setLoading(true);
+        axios
+            .get<User[]>("https://jsonplaceholder.typicode.com/users", {
+                signal: controller.signal,
+            })
+            .then((res) => {
+                setUsers(res.data);
+                setLoading(false);
+            })
+            .catch((err) => {
+                if (err instanceof CanceledError) return;
+
+                setError(err.message);
+                setLoading(false);
+            });
+        // .finally(() => {
+        //     setLoading(false);
+        // });
+
+        return () => controller.abort();
+    }, []);
+
+    const deleteUser = (user: User) => {
+        const originalUsers = [...users];
+        setUsers(users.filter((usr) => usr.id !== user.id));
+        axios
+            .delete("https://jsonplaceholder.typicode.com/users/" + user.id)
+            .catch((err) => {
+                setError(err.message);
+                setUsers(originalUsers);
+            });
+    };
+
+    const createUser = () => {
+        const originalUsers = [...users];
+        const newUser = { id: 1, name: "Sika" };
+        setUsers([newUser, ...users]);
+
+        axios
+            .post("https://jsonplaceholder.typicode.com/users/", newUser)
+            // .then((res) => setUsers([res.data, ...users]))
+            .then(({ data: savedNewUser }) =>
+                setUsers([savedNewUser, ...users])
+            )
+            .catch((err) => {
+                setError(err.message);
+                setUsers(originalUsers);
+            });
+    };
+
+    const updateUser = (user: User) => {
+        const originalUsers = [...users];
+        const updatedUser = { ...user, name: user.name + "?" };
+        setUsers(users.map((usr) => (usr.id === user.id ? updatedUser : usr)));
+
+        axios
+            .patch(
+                "https://jsonplaceholder.typicode.com/users/" + user.id,
+                updatedUser
+            )
+            .catch((err) => {
+                setError(err.message);
+                setUsers(originalUsers);
+            });
+    };
+    return (
+        <>
+            <div>
+                {error && <p className="text-danger">{error}</p>}
+                {isLoading && <div className="spinner-border"></div>}
+                <button
+                    className="btn btn-outline-primary"
+                    onClick={createUser}
+                >
+                    Add
+                </button>
+                <br />
+                <br />
+                <ul className="list-group">
+                    {users.map((user) => (
+                        <li
+                            key={user.id}
+                            className="list-group-item d-flex justify-content-between"
+                        >
+                            {user.name}
+                            <div>
+                                <button
+                                    className="btn btn-secondary mx-2"
+                                    onClick={() => updateUser(user)}
+                                >
+                                    Update
+                                </button>
+                                <button
+                                    onClick={() => deleteUser(user)}
+                                    className="btn btn-outline-danger"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        </>
+    );
+};
+
+export default App;
+
+
+
+
+----------------------------------------------
+----------------------------------------------
+
+#7: Refactoring the code to make it more clean & concise, which leads to removing duplication: 
+
+----------------------------------------------
+
+
+import axios, { CanceledError } from "axios";
+
+export default axios.create({
+    baseURL: "https://jsonplaceholder.typicode.com",
+});
+
+export { CanceledError };
+
+----------------------------------------------
+
+
+import React, { useEffect, useRef, useState } from "react";
+
+import apiClient, { CanceledError } from "./components/services/api-client";
+
+import "bootstrap/dist/css/bootstrap.css";
+
+interface User {
+    id: number;
+    name: string;
+}
+
+const App = () => {
+    const [users, setUsers] = useState<User[]>([]);
+    const [error, setError] = useState("");
+    const [isLoading, setLoading] = useState<boolean>();
+
+    useEffect(() => {
+        const controller = new AbortController();
+        setLoading(true);
+        apiClient
+            .get<User[]>("/users", {
+                signal: controller.signal,
+            })
+            .then((res) => {
+                setUsers(res.data);
+                setLoading(false);
+            })
+            .catch((err) => {
+                if (err instanceof CanceledError) return;
+
+                setError(err.message);
+                setLoading(false);
+            });
+        // .finally(() => {
+        //     setLoading(false);
+        // });
+
+        return () => controller.abort();
+    }, []);
+
+    const deleteUser = (user: User) => {
+        const originalUsers = [...users];
+        setUsers(users.filter((usr) => usr.id !== user.id));
+        apiClient.delete("/users/" + user.id).catch((err) => {
+            setError(err.message);
+            setUsers(originalUsers);
+        });
+    };
+
+    const createUser = () => {
+        const originalUsers = [...users];
+        const newUser = { id: 1, name: "Sika" };
+        setUsers([newUser, ...users]);
+
+        apiClient
+            .post("/users/", newUser)
+            // .then((res) => setUsers([res.data, ...users]))
+            .then(({ data: savedNewUser }) =>
+                setUsers([savedNewUser, ...users])
+            )
+            .catch((err) => {
+                setError(err.message);
+                setUsers(originalUsers);
+            });
+    };
+
+    const updateUser = (user: User) => {
+        const originalUsers = [...users];
+        const updatedUser = { ...user, name: user.name + "?" };
+        setUsers(users.map((usr) => (usr.id === user.id ? updatedUser : usr)));
+
+        apiClient.patch("/users/" + user.id, updatedUser).catch((err) => {
+            setError(err.message);
+            setUsers(originalUsers);
+        });
+    };
+    return (
+        <>
+            <div>
+                {error && <p className="text-danger">{error}</p>}
+                {isLoading && <div className="spinner-border"></div>}
+                <button
+                    className="btn btn-outline-primary"
+                    onClick={createUser}
+                >
+                    Add
+                </button>
+                <br />
+                <br />
+                <ul className="list-group">
+                    {users.map((user) => (
+                        <li
+                            key={user.id}
+                            className="list-group-item d-flex justify-content-between"
+                        >
+                            {user.name}
+                            <div>
+                                <button
+                                    className="btn btn-secondary mx-2"
+                                    onClick={() => updateUser(user)}
+                                >
+                                    Update
+                                </button>
+                                <button
+                                    onClick={() => deleteUser(user)}
+                                    className="btn btn-outline-danger"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        </>
+    );
+};
+
+export default App;
+
+
+
+
+----------------------------------------------
+----------------------------------------------
+
+#8: Refactoring again after creating a new 'user-service' to make a reusable components: 
+
+----------------------------------------------
+
+import apiClient from "./api-client";
+
+export interface User {
+    id: number;
+    name: string;
+}
+
+class UserService {
+    getAllUser() {
+        const controller = new AbortController();
+        // return apiClient.get<User[]>("/users");
+        const request = apiClient.get<User[]>("/users", {
+            signal: controller.signal,
+        });
+        return { request, cancel: () => controller.abort() };
+    };
+}
+
+export default new UserService();
+
+----------------------------------------------
+
+import React, { useEffect, useRef, useState } from "react";
+import "bootstrap/dist/css/bootstrap.css";
+
+import apiClient, { CanceledError } from "./components/services/api-client";
+import userService from "./components/services/user-service";
+import { User } from "./components/services/user-service";
+
+const App = () => {
+    const [users, setUsers] = useState<User[]>([]);
+    const [error, setError] = useState("");
+    const [isLoading, setLoading] = useState<boolean>();
+
+    useEffect(() => {
+        setLoading(true);
+        // apiClient
+        //     .get<User[]>("/users", {
+        //         signal: controller.signal,
+        //     })
+
+        const { request, cancel } = userService.getAllUser();
+        request
+            .then((res) => {
+                setUsers(res.data);
+                setLoading(false);
+            })
+            .catch((err) => {
+                if (err instanceof CanceledError) return;
+
+                setError(err.message);
+                setLoading(false);
+            });
+        // .finally(() => {
+        //     setLoading(false);
+        // });
+
+        return () => cancel();
+    }, []);
+
+    const deleteUser = (user: User) => {
+        const originalUsers = [...users];
+        setUsers(users.filter((usr) => usr.id !== user.id));
+        apiClient.delete("/users/" + user.id).catch((err) => {
+            setError(err.message);
+            setUsers(originalUsers);
+        });
+    };
+
+    const createUser = () => {
+        const originalUsers = [...users];
+        const newUser = { id: 1, name: "Sika" };
+        setUsers([newUser, ...users]);
+
+        apiClient
+            .post("/users/", newUser)
+            // .then((res) => setUsers([res.data, ...users]))
+            .then(({ data: savedNewUser }) =>
+                setUsers([savedNewUser, ...users])
+            )
+            .catch((err) => {
+                setError(err.message);
+                setUsers(originalUsers);
+            });
+    };
+
+    const updateUser = (user: User) => {
+        const originalUsers = [...users];
+        const updatedUser = { ...user, name: user.name + "?" };
+        setUsers(users.map((usr) => (usr.id === user.id ? updatedUser : usr)));
+
+        apiClient.patch("/users/" + user.id, updatedUser).catch((err) => {
+            setError(err.message);
+            setUsers(originalUsers);
+        });
+    };
+    return (
+        <>
+            <div>
+                {error && <p className="text-danger">{error}</p>}
+                {isLoading && <div className="spinner-border"></div>}
+                <button
+                    className="btn btn-outline-primary"
+                    onClick={createUser}
+                >
+                    Add
+                </button>
+                <br />
+                <br />
+                <ul className="list-group">
+                    {users.map((user) => (
+                        <li
+                            key={user.id}
+                            className="list-group-item d-flex justify-content-between"
+                        >
+                            {user.name}
+                            <div>
+                                <button
+                                    className="btn btn-secondary mx-2"
+                                    onClick={() => updateUser(user)}
+                                >
+                                    Update
+                                </button>
+                                <button
+                                    onClick={() => deleteUser(user)}
+                                    className="btn btn-outline-danger"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        </>
+    );
+};
+
+export default App;
+
+
+
+
+
+----------------------------------------------
+----------------------------------------------
+
+#8: Refactored the rest of the function of userService: 
+
+
+----------------------------------------------
+
+import apiClient from "./api-client";
+
+export interface User {
+    id: number;
+    name: string;
+}
+
+class UserService {
+    getAllUser() {
+        const controller = new AbortController();
+        // return apiClient.get<User[]>("/users");
+        const request = apiClient.get<User[]>("/users", {
+            signal: controller.signal,
+        });
+        return { request, cancel: () => controller.abort() };
+    }
+
+    createUser(user: User) {
+        return apiClient.post("/users", user);
+    }
+
+    updateUser(user: User) {
+        return apiClient.patch("/users/" + user.id, user);
+    }
+
+    deleteUser(userId: number) {
+        return apiClient.delete("/users/" + userId);
+    }
+}
+
+export default new UserService();
+
+
+
+----------------------------------------------
+
+import React, { useEffect, useRef, useState } from "react";
+import "bootstrap/dist/css/bootstrap.css";
+
+import { CanceledError } from "./components/services/api-client";
+import userService from "./components/services/user-service";
+import { User } from "./components/services/user-service";
+
+const App = () => {
+    const [users, setUsers] = useState<User[]>([]);
+    const [error, setError] = useState("");
+    const [isLoading, setLoading] = useState<boolean>();
+
+    useEffect(() => {
+        setLoading(true);
+        // apiClient
+        //     .get<User[]>("/users", {
+        //         signal: controller.signal,
+        //     })
+
+        const { request, cancel } = userService.getAllUser();
+        request
+            .then((res) => {
+                setUsers(res.data);
+                setLoading(false);
+            })
+            .catch((err) => {
+                if (err instanceof CanceledError) return;
+
+                setError(err.message);
+                setLoading(false);
+            });
+        // .finally(() => {
+        //     setLoading(false);
+        // });
+
+        return () => cancel();
+    }, []);
+
+    const deleteUser = (user: User) => {
+        const originalUsers = [...users];
+        setUsers(users.filter((usr) => usr.id !== user.id));
+        // apiClient.delete("/users/" + user.id)
+        userService.deleteUser(user.id).catch((err) => {
+            setError(err.message);
+            setUsers(originalUsers);
+        });
+    };
+
+    const createUser = () => {
+        const originalUsers = [...users];
+        const newUser = { id: 1, name: "Sika" };
+        setUsers([newUser, ...users]);
+
+        // apiClient
+        //     .post("/users/", newUser)
+        userService
+            .createUser(newUser)
+            // .then((res) => setUsers([res.data, ...users]))
+            .then(({ data: savedNewUser }) =>
+                setUsers([savedNewUser, ...users])
+            )
+            .catch((err) => {
+                setError(err.message);
+                setUsers(originalUsers);
+            });
+    };
+
+    const updateUser = (user: User) => {
+        const originalUsers = [...users];
+        const updatedUser = { ...user, name: user.name + "?" };
+        setUsers(users.map((usr) => (usr.id === user.id ? updatedUser : usr)));
+
+        // apiClient.patch("/users/" + user.id, updatedUser)
+        userService.updateUser(updatedUser).catch((err) => {
+            setError(err.message);
+            setUsers(originalUsers);
+        });
+    };
+    return (
+        <>
+            <div>
+                {error && <p className="text-danger">{error}</p>}
+                {isLoading && <div className="spinner-border"></div>}
+                <button
+                    className="btn btn-outline-primary"
+                    onClick={createUser}
+                >
+                    Add
+                </button>
+                <br />
+                <br />
+                <ul className="list-group">
+                    {users.map((user) => (
+                        <li
+                            key={user.id}
+                            className="list-group-item d-flex justify-content-between"
+                        >
+                            {user.name}
+                            <div>
+                                <button
+                                    className="btn btn-secondary mx-2"
+                                    onClick={() => updateUser(user)}
+                                >
+                                    Update
+                                </button>
+                                <button
+                                    onClick={() => deleteUser(user)}
+                                    className="btn btn-outline-danger"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        </>
+    );
+};
+
+export default App;
+
+
+->_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>>
+----------------------------------------------
+->_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>>
+
+#9: Creating a Generic `HTTP Service` & implementing `User Service` with it :
+
+
+----------------------------------------------
+->_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>>
+
+import apiClient from "./api-client";
+
+interface Entity {
+    id: number;
+}
+
+class HttpService {
+    endpoint: string;
+
+    constructor(endpoint: string) {
+        this.endpoint = endpoint;
+    }
+
+    getAll<T>() {
+        const controller = new AbortController();
+        const request = apiClient.get<T[]>(this.endpoint, {
+            signal: controller.signal,
+        });
+        return { request, cancel: () => controller.abort() };
+    }
+
+    create<T>(entity: T) {
+        return apiClient.post(this.endpoint, entity);
+    }
+
+    update<T extends Entity>(entity: T) {
+        return apiClient.patch(this.endpoint + "/" + entity.id, entity);
+    }
+
+    delete = (userId: number) => {
+        return apiClient.delete(this.endpoint + "/" + userId);
+    };
+}
+
+const create = (endpoint: string) => new HttpService(endpoint);
+
+export default create;
+
+
+----------------------------------------------
+->_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>>
+
+
+import create from "./http-service";
+
+export interface User {
+    id: number;
+    name: string;
+}
+
+export default create("/users");
+
+
+----------------------------------------------
+->_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>>
+
+import React, { useEffect, useRef, useState } from "react";
+import "bootstrap/dist/css/bootstrap.css";
+
+import { CanceledError } from "./components/services/api-client";
+import userService from "./components/services/user-service";
+import { User } from "./components/services/user-service";
+
+const App = () => {
+    const [users, setUsers] = useState<User[]>([]);
+    const [error, setError] = useState("");
+    const [isLoading, setLoading] = useState<boolean>();
+
+    useEffect(() => {
+        setLoading(true);
+
+        const { request, cancel } = userService.getAll<User>();
+        request
+            .then((res) => {
+                setUsers(res.data);
+                setLoading(false);
+            })
+            .catch((err) => {
+                if (err instanceof CanceledError) return;
+
+                setError(err.message);
+                setLoading(false);
+            });
+        // .finally(() => {
+        //     setLoading(false);
+        // });
+
+        return () => cancel();
+    }, []);
+
+    const deleteUser = (user: User) => {
+        const originalUsers = [...users];
+        setUsers(users.filter((usr) => usr.id !== user.id));
+        userService.delete(user.id).catch((err) => {
+            setError(err.message);
+            setUsers(originalUsers);
+        });
+    };
+
+    const createUser = () => {
+        const originalUsers = [...users];
+        const newUser = { id: 1, name: "Sika" };
+        setUsers([newUser, ...users]);
+
+        userService
+            .create(newUser)
+            .then(({ data: savedNewUser }) =>
+                setUsers([savedNewUser, ...users])
+            )
+            .catch((err) => {
+                setError(err.message);
+                setUsers(originalUsers);
+            });
+    };
+
+    const updateUser = (user: User) => {
+        const originalUsers = [...users];
+        const updatedUser = { ...user, name: user.name + "?" };
+        setUsers(users.map((usr) => (usr.id === user.id ? updatedUser : usr)));
+
+        userService.update(updatedUser).catch((err) => {
+            setError(err.message);
+            setUsers(originalUsers);
+        });
+    };
+    return (
+        <>
+            <div>
+                {error && <p className="text-danger">{error}</p>}
+                {isLoading && <div className="spinner-border"></div>}
+                <button
+                    className="btn btn-outline-primary"
+                    onClick={createUser}
+                >
+                    Add
+                </button>
+                <br />
+                <br />
+                <ul className="list-group">
+                    {users.map((user) => (
+                        <li
+                            key={user.id}
+                            className="list-group-item d-flex justify-content-between"
+                        >
+                            {user.name}
+                            <div>
+                                <button
+                                    className="btn btn-secondary mx-2"
+                                    onClick={() => updateUser(user)}
+                                >
+                                    Update
+                                </button>
+                                <button
+                                    onClick={() => deleteUser(user)}
+                                    className="btn btn-outline-danger"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        </>
+    );
+};
+
+export default App;
+
+
+
+->_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>>
+----------------------------------------------
+->_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>>
+
+#10: Creating a Custom Data fetching hook (useUsers, just like useState, useRef or useEffect. In this case, it's custom made by us):
+
+
+
+->_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>>
+
+import { useEffect, useState } from "react";
+import userService, { User } from "../services/user-service";
+import { CanceledError } from "axios";
+
+const useUsers = () => {
+    const [users, setUsers] = useState<User[]>([]);
+    const [error, setError] = useState("");
+    const [isLoading, setLoading] = useState<boolean>();
+
+    useEffect(() => {
+        setLoading(true);
+
+        const { request, cancel } = userService.getAll<User>();
+        request
+            .then((res) => {
+                setUsers(res.data);
+                setLoading(false);
+            })
+            .catch((err) => {
+                if (err instanceof CanceledError) return;
+
+                setError(err.message);
+                setLoading(false);
+            });
+
+        return () => cancel();
+    }, []);
+    return { users, error, isLoading, setUsers, setError };
+};
+
+export default useUsers;
+
+
+
+----------------------------------------------
+->_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>_>>
+
+import React, { useEffect, useRef, useState } from "react";
+import "bootstrap/dist/css/bootstrap.css";
+
+import { CanceledError } from "./components/services/api-client";
+import userService from "./components/services/user-service";
+import { User } from "./components/services/user-service";
+import useUsers from "./components/hooks/useUsers";
+
+const App = () => {
+    const { users, error, isLoading, setUsers, setError } = useUsers();
+
+    const deleteUser = (user: User) => {
+        const originalUsers = [...users];
+        setUsers(users.filter((usr) => usr.id !== user.id));
+
+        userService.delete(user.id).catch((err) => {
+            setError(err.message);
+            setUsers(originalUsers);
+        });
+    };
+
+    const createUser = () => {
+        const originalUsers = [...users];
+        const newUser = { id: 1, name: "Sika" };
+        setUsers([newUser, ...users]);
+
+        userService
+            .create(newUser)
+            .then(({ data: savedNewUser }) =>
+                setUsers([savedNewUser, ...users])
+            )
+            .catch((err) => {
+                setError(err.message);
+                setUsers(originalUsers);
+            });
+    };
+
+    const updateUser = (user: User) => {
+        const originalUsers = [...users];
+        const updatedUser = { ...user, name: user.name + "?" };
+        setUsers(users.map((usr) => (usr.id === user.id ? updatedUser : usr)));
+
+        userService.update(updatedUser).catch((err) => {
+            setError(err.message);
+            setUsers(originalUsers);
+        });
+    };
+    return (
+        <>
+            <div>
+                {error && <p className="text-danger">{error}</p>}
+                {isLoading && <div className="spinner-border"></div>}
+                <button
+                    className="btn btn-outline-primary"
+                    onClick={createUser}
+                >
+                    Add
+                </button>
+                <br />
+                <br />
+                <ul className="list-group">
+                    {users.map((user) => (
+                        <li
+                            key={user.id}
+                            className="list-group-item d-flex justify-content-between"
+                        >
+                            {user.name}
+                            <div>
+                                <button
+                                    className="btn btn-secondary mx-2"
+                                    onClick={() => updateUser(user)}
+                                >
+                                    Update
+                                </button>
+                                <button
+                                    onClick={() => deleteUser(user)}
+                                    className="btn btn-outline-danger"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        </>
+    );
+};
+
+export default App;
