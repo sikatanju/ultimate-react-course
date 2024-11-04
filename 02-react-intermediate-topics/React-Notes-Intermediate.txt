@@ -1,0 +1,523 @@
+--> React Intermediate Course -- by Mosh Hamedani.
+
+#1. Using react-query: 
+
+main.tsx : 
+
+import 'bootstrap/dist/css/bootstrap.css';
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+
+import App from './App';
+import './index.css';
+
+const queryClient = new QueryClient();
+
+ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+    <QueryClientProvider client={queryClient}>
+        <React.StrictMode>
+          <App />
+          <ReactQueryDevtools />
+        </React.StrictMode>
+    </QueryClientProvider>
+);
+
+----------------------------------------------------->
+
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
+
+interface Todo {
+    id: number;
+    title: string;
+    userId: number;
+    completed: boolean;
+}
+
+const useTodos = () => {
+    const fetchTodos = () =>
+        axios
+            .get<Todo[]>("https://jsonplaceholder.typicode.com/todos")
+            .then((res) => res.data);
+
+    return useQuery<Todo[], Error>({
+        queryKey: ["todos"],
+        queryFn: fetchTodos,
+    });
+};
+
+export default useTodos;
+
+----------------------------------------------------->
+
+import useTodos from "./hooks/useTodos";
+
+const TodoList = () => {
+    const { data: todos, error, isLoading } = useTodos();
+
+    if (isLoading) return <p>Loading...</p>;
+    if (error) return <p>{error?.message}</p>;
+
+    return (
+        <ul className="list-group">
+            {todos?.map((todo) => (
+                <li key={todo.id} className="list-group-item">
+                    {todo.title}
+                </li>
+            ))}
+        </ul>
+    );
+};
+
+export default TodoList;
+
+
+----------------------------------------------------->
+----------------------------------------------------->
+
+#2. Customizing query settings: 
+
+
+import "bootstrap/dist/css/bootstrap.css";
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+
+import App from "./App";
+import "./index.css";
+
+// Updated Code: 
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 10 * 1000,
+      retry: 5,
+      cacheTime: 300 * 1000,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+    },
+  },
+});
+
+ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+  <QueryClientProvider client={queryClient}>
+    <React.StrictMode>
+      <App />
+      <ReactQueryDevtools />
+    </React.StrictMode>
+  </QueryClientProvider>
+);
+
+
+----------------------------------------------------->
+----------------------------------------------------->
+
+#2. Parameterized Queries (Getting posts by userId): 
+
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
+
+interface Post {
+  id: number;
+  title: string;
+  body: string;
+  userId: number;
+}
+
+const usePosts = (userId: number | undefined) => {
+  const fetchPosts = () =>
+    axios
+      .get("https://jsonplaceholder.typicode.com/posts", {
+        params: {
+          userId,
+        },
+      })
+      .then((res) => res.data);
+
+  return useQuery<Post[], Error>({
+    queryKey: userId ? ["users", userId, "posts"] : ["posts"],
+    queryFn: fetchPosts,
+    staleTime: 300_000,
+  });
+};
+
+export default usePosts;
+
+----------------------------------------------------->
+
+import { useState } from "react";
+import usePosts from "./hooks/usePosts";
+
+interface Post {
+  id: number;
+  title: string;
+  body: string;
+  userId: number;
+}
+
+const PostList = () => {
+  const [userId, setUserId] = useState<number>();
+  const { data: posts, error, isLoading } = usePosts(userId);
+
+  if (isLoading) return <p>Loading...</p>;
+
+  if (error) return <p>{error.message}</p>;
+
+  return (
+    <>
+      <select
+        onChange={(event) => setUserId(parseInt(event.target.value))}
+        value={userId}
+        className="form-select mb-3"
+      >
+        <option></option>
+        <option value="1">User 1</option>
+        <option value="2">User 2</option>
+        <option value="3">User 3</option>
+      </select>
+      <ul className="list-group">
+        {posts?.map((post) => (
+          <li key={post.id} className="list-group-item">
+            {post.title}
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+};
+
+export default PostList;
+
+
+----------------------------------------------------->
+----------------------------------------------------->
+
+
+#3. Paginated Queries (Getting posts by page & pageSize):
+
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
+
+interface Post {
+  id: number;
+  title: string;
+  body: string;
+  userId: number;
+}
+
+interface PostQuery {
+  pageSize: number;
+  page: number;
+}
+
+const usePosts = (query: PostQuery) => {
+  const fetchPosts = () =>
+    axios
+      .get("https://jsonplaceholder.typicode.com/posts", {
+        params: {
+          _start: (query.page - 1) * query.pageSize,
+          _limit: query.pageSize,
+        },
+      })
+      .then((res) => res.data);
+
+  return useQuery<Post[], Error>({
+    queryKey: ["posts", query],
+    queryFn: fetchPosts,
+    staleTime: 300_000,
+    keepPreviousData: true
+  });
+};
+
+export default usePosts;
+
+
+import { useState } from "react";
+import usePosts from "./hooks/usePosts";
+
+interface Post {
+  id: number;
+  title: string;
+  body: string;
+  userId: number;
+}
+
+const PostList = () => {
+  const [pageSize, setPageSize] = useState(10);
+  const [page, setPage] = useState(1);
+  const {
+    data: posts,
+    error,
+    isLoading,
+  } = usePosts({ page: page, pageSize: pageSize });
+
+  if (isLoading) return <p>Loading...</p>;
+
+  if (error) return <p>{error.message}</p>;
+
+  return (
+    <>
+      <select
+        value={pageSize}
+        onChange={(event) => setPageSize(parseInt(event.target.value))}
+        className="form-select mb-3"
+      >
+        <option value="10">10</option>
+        <option value="20">20</option>
+        <option value="30">30</option>
+      </select>
+      <ul className="list-group">
+        {posts?.map((post) => (
+          <li key={post.id} className="list-group-item">
+            {post.title}
+          </li>
+        ))}
+      </ul>
+      <button
+        disabled={page === 1}
+        onClick={() => setPage(page - 1)}
+        className="btn btn-secondary"
+      >
+        Previous
+      </button>
+      <button
+        onClick={() => setPage(page + 1)}
+        className="btn btn-secondary ms-3"
+      >
+        Next
+      </button>
+    </>
+  );
+};
+
+export default PostList;
+
+
+----------------------------------------------------->
+----------------------------------------------------->
+
+
+#4. Infinite Queries (Getting posts infinitely):
+
+
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import axios from "axios";
+
+interface Post {
+  id: number;
+  title: string;
+  body: string;
+  userId: number;
+}
+
+interface PostQuery {
+  pageSize: number;
+}
+
+const usePosts = (query: PostQuery) => {
+  const fetchPosts = ({ pageParam }: number | any) =>
+    axios
+      .get("https://jsonplaceholder.typicode.com/posts", {
+        params: {
+          _start: (pageParam - 1) * query.pageSize,
+          _limit: query.pageSize,
+        },
+      })
+      .then((res) => res.data);
+
+  return useInfiniteQuery<Post[], Error>({
+    queryKey: ["posts", query],
+    queryFn: ({ pageParam = 1}) => fetchPosts(pageParam),
+    staleTime: 300_000,
+    keepPreviousData: true,
+    getNextPageParam: (lastPage, allPages) => {
+      return lastPage.length > 0 ? allPages.length + 1 : undefined;
+    },
+  });
+};
+
+export default usePosts;
+
+
+
+import { useState } from "react";
+import usePosts from "./hooks/usePosts";
+import React from "react";
+
+interface Post {
+  id: number;
+  title: string;
+  body: string;
+  userId: number;
+}
+
+const PostList = () => {
+  const [pageSize, setPageSize] = useState(10);
+  const {
+    data: posts,
+    error,
+    isLoading,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = usePosts({ pageSize: pageSize });
+
+  if (isLoading) return <p>Loading...</p>;
+
+  if (error) return <p>{error.message}</p>;
+
+  return (
+    <>
+      <select
+        value={pageSize}
+        onChange={(event) => setPageSize(parseInt(event.target.value))}
+        className="form-select mb-3"
+      >
+        <option value="10">10</option>
+        <option value="20">20</option>
+        <option value="30">30</option>
+      </select>
+      <ul className="list-group">
+        {posts.pages.map((posts, index) => (
+          <React.Fragment key={index}>
+            {posts.map((post) => (
+              <li key={post.id} className="list-group-item">
+                {post.title}
+              </li>
+            ))}
+          </React.Fragment>
+        ))}
+      </ul>
+      <button
+        // disabled={page === 1}
+        onClick={() => fetchNextPage()}
+        className="btn btn-primary"
+      >
+        {isFetchingNextPage ? "Loading..." : "Load More"}
+      </button>
+    </>
+  );
+};
+
+export default PostList;
+
+
+
+
+----------------------------------------------------->
+----------------------------------------------------->
+
+
+### New Part: Mutating Data: 
+
+
+#1: Mutating Data: 
+
+
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRef } from "react";
+import { Todo } from "./hooks/useTodos";
+import axios from "axios";
+
+const TodoForm = () => {
+  const ref = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
+  const addTodo = useMutation({
+    mutationFn: (todo: Todo) =>
+      axios
+        .post<Todo>("https://jsonplaceholder.typicode.com/todos", todo)
+        .then((res) => res.data),
+
+    onSuccess: (savedTodo, newTodo) => {
+      console.log(savedTodo);
+
+      // We could invalid the cache to fetch the new data.
+      // queryClient.invalidateQueries({
+      //   queryKey: ['todos']
+      // })
+
+      queryClient.setQueryData<Todo[]>(["todos"], (todos) => [
+        savedTodo,
+        ...(todos || []),
+      ]);
+
+      // console.log(queryClient.getQueryData(['todos']))
+    },
+  });
+
+  return (
+    <form
+      className="row mb-3"
+      onSubmit={(event) => {
+        event.preventDefault();
+
+        if (ref.current && ref.current.value)
+          addTodo.mutate({
+            id: 0,
+            title: ref.current?.value,
+            completed: true,
+            userId: 1,
+          });
+      }}
+    >
+      <div className="col">
+        <input ref={ref} type="text" className="form-control" />
+      </div>
+      <div className="col">
+        <button className="btn btn-primary">Add</button>
+      </div>
+    </form>
+  );
+};
+
+export default TodoForm;
+
+----------------------------------------------------->
+
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
+
+export interface Todo {
+  id: number;
+  title: string;
+  userId: number;
+  completed: boolean;
+}
+
+const useTodos = () => {
+  const fetchTodos = () =>
+    axios
+      .get<Todo[]>("https://jsonplaceholder.typicode.com/todos")
+      .then((res) => res.data);
+
+  return useQuery<Todo[], Error>({
+    queryKey: ["todos"],
+    queryFn: fetchTodos,
+    staleTime: 300_000,
+  });
+};
+
+export default useTodos;
+
+----------------------------------------------------->
+
+import "./App.css";
+import PostList from "./react-query/PostList";
+import TodoForm from "./react-query/TodoForm";
+import TodoList from "./react-query/TodoList";
+
+function App() {
+  return (
+    <>
+      <TodoForm />
+      {/* <PostList /> */}
+      <TodoList />;
+    </>
+  );
+}
+
+export default App;
