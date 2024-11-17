@@ -521,3 +521,959 @@ function App() {
 }
 
 export default App;
+
+
+
+
+----------------------------------------------------->
+----------------------------------------------------->
+
+
+#2: Handling Errors (everything is the same as before except below this few lines): 
+
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRef } from "react";
+import { Todo } from "./hooks/useTodos";
+import axios from "axios";
+
+const TodoForm = () => {
+  const ref = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
+  const addTodo = useMutation<Todo, Error, Todo>({
+    mutationFn: (todo: Todo) =>
+      axios
+        .post<Todo>("https://jsonplaceholder.typicode.com/todosx", todo)
+        .then((res) => res.data),
+
+    onSuccess: (savedTodo, newTodo) => {
+      console.log(savedTodo);
+
+      // We could invalid the cache to fetch the new data.
+      // queryClient.invalidateQueries({
+      //   queryKey: ['todos']
+      // })
+
+      queryClient.setQueryData<Todo[]>(["todos"], (todos) => [
+        savedTodo,
+        ...(todos || []),
+      ]);
+
+      // console.log(queryClient.getQueryData(['todos']))
+    },
+  });
+
+  return (
+    <>
+      {addTodo.error && (
+        <div className="alert alert-danger">{addTodo.error.message}</div>
+      )}
+
+      <form
+        className="row mb-3"
+        onSubmit={(event) => {
+          event.preventDefault();
+
+          if (ref.current && ref.current.value)
+            addTodo.mutate({
+              id: 0,
+              title: ref.current?.value,
+              completed: true,
+              userId: 1,
+            });
+        }}
+      >
+        <div className="col">
+          <input ref={ref} type="text" className="form-control" />
+        </div>
+        <div className="col">
+          <button className="btn btn-primary">Add</button>
+        </div>
+      </form>
+    </>
+  );
+};
+
+export default TodoForm;
+
+ 
+
+----------------------------------------------------->
+----------------------------------------------------->
+
+
+#3: Showing Mutation Progress (everything is the same as before except below this few lines): 
+
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRef } from "react";
+import { Todo } from "./hooks/useTodos";
+import axios from "axios";
+
+const TodoForm = () => {
+  const ref = useRef<HTMLInputElement>(null);
+
+  const queryClient = useQueryClient();
+
+  const addTodo = useMutation<Todo, Error, Todo>({
+    mutationFn: (todo: Todo) =>
+      axios
+        .post<Todo>("https://jsonplaceholder.typicode.com/todos", todo)
+        .then((res) => res.data),
+
+    onSuccess: (savedTodo, newTodo) => {
+      console.log(savedTodo);
+      if (ref.current) ref.current.value = "";
+
+      // We could invalid the cache to fetch the new data.
+      // queryClient.invalidateQueries({
+      //   queryKey: ['todos']
+      // })
+
+      queryClient.setQueryData<Todo[]>(["todos"], (todos) => [
+        savedTodo,
+        ...(todos || []),
+      ]);
+
+      // console.log(queryClient.getQueryData(['todos']))
+    },
+  });
+
+  return (
+    <>
+      {addTodo.error && (
+        <div className="alert alert-danger">{addTodo.error.message}</div>
+      )}
+
+      <form
+        className="row mb-3"
+        onSubmit={(event) => {
+          event.preventDefault();
+
+          if (ref.current && ref.current.value)
+            addTodo.mutate({
+              id: 0,
+              title: ref.current?.value,
+              completed: true,
+              userId: 1,
+            });
+        }}
+      >
+        <div className="col">
+          <input ref={ref} type="text" className="form-control" />
+        </div>
+        <div className="col">
+          <button disabled={addTodo.isLoading} className="btn btn-primary">
+            {addTodo.isLoading ? "Adding..." : "Add"}
+          </button>
+        </div>
+      </form>
+    </>
+  );
+};
+
+export default TodoForm;
+
+
+----------------------------------------------------->
+----------------------------------------------------->
+
+
+#4: Optimistic Updates (we're going to make changes to the data before passing it to the backend): 
+
+
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRef } from "react";
+import { Todo } from "./hooks/useTodos";
+import axios from "axios";
+
+interface AddTodoContext {
+  previousTodo: Todo[];
+}
+
+const TodoForm = () => {
+  const ref = useRef<HTMLInputElement>(null);
+
+  const queryClient = useQueryClient();
+
+  const addTodo = useMutation<Todo, Error, Todo, AddTodoContext>({
+    mutationFn: (todo: Todo) =>
+      axios
+        .post<Todo>("https://jsonplaceholder.typicode.com/todosx", todo)
+        .then((res) => res.data),
+
+    onMutate: (newTodo: Todo) => {
+      const previousTodo = queryClient.getQueryData<Todo[]>(["todos"]) || [];
+
+      if (ref.current) ref.current.value = "";
+      queryClient.setQueryData<Todo[]>(["todos"], (todos) => [
+        newTodo,
+        ...(todos || []),
+      ]);
+      return { previousTodo };
+    },
+
+    onSuccess: (savedTodo, newTodo) => {
+      queryClient.setQueryData<Todo[]>(["todos"], (todos) =>
+        todos?.map((todo) => (todo === newTodo ? savedTodo : todo))
+      );
+    },
+
+    onError: (error, newTodo, context) => {
+      queryClient.setQueryData(["todos"], context?.previousTodo);
+    },
+  });
+
+  return (
+    <>
+      {addTodo.error && (
+        <div className="alert alert-danger">{addTodo.error.message}</div>
+      )}
+
+      <form
+        className="row mb-3"
+        onSubmit={(event) => {
+          event.preventDefault();
+
+          if (ref.current && ref.current.value)
+            addTodo.mutate({
+              id: 0,
+              title: ref.current?.value,
+              completed: true,
+              userId: 1,
+            });
+        }}
+      >
+        <div className="col">
+          <input ref={ref} type="text" className="form-control" />
+        </div>
+        <div className="col">
+          <button disabled={addTodo.isLoading} className="btn btn-primary">
+            {addTodo.isLoading ? "Adding..." : "Add"}
+          </button>
+        </div>
+      </form>
+    </>
+  );
+};
+
+export default TodoForm;
+
+
+
+----------------------------------------------------->
+----------------------------------------------------->
+
+
+#5: Creating a custom mutation hook (): 
+
+`fileName: constants.ts`: 
+
+export const CACHE_KEY_TODOS = ["todos"];
+
+
+`fileName: useAddTodo.ts`:
+
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Todo } from "./useTodos";
+import axios from "axios";
+import { CACHE_KEY_TODOS } from "../constants";
+
+interface AddTodoContext {
+  previousTodo: Todo[];
+}
+
+const useAddTodo = (onAdd: () => void) => {
+  const queryClient = useQueryClient();
+
+  return useMutation<Todo, Error, Todo, AddTodoContext>({
+    mutationFn: (todo: Todo) =>
+      axios
+        .post<Todo>("https://jsonplaceholder.typicode.com/todos", todo)
+        .then((res) => res.data),
+
+    onMutate: (newTodo: Todo) => {
+      const previousTodo =
+        queryClient.getQueryData<Todo[]>(CACHE_KEY_TODOS) || [];
+
+      queryClient.setQueryData<Todo[]>(CACHE_KEY_TODOS, (todos = []) => [
+        newTodo,
+        ...todos,
+      ]);
+      onAdd();
+      return { previousTodo };
+    },
+
+    onSuccess: (savedTodo, newTodo) => {
+      queryClient.setQueryData<Todo[]>(CACHE_KEY_TODOS, (todos) =>
+        todos?.map((todo) => (todo === newTodo ? savedTodo : todo))
+      );
+    },
+    onError: (error, newTodo, context) => {
+      queryClient.setQueryData(CACHE_KEY_TODOS, context?.previousTodo);
+    },
+  });
+};
+
+export default useAddTodo;
+
+
+`fileName: TodoForm`: 
+
+import { useRef } from "react";
+import useAddTodo from "./hooks/useAddTodo";
+
+const TodoForm = () => {
+  const ref = useRef<HTMLInputElement>(null);
+
+  const addTodo = useAddTodo(() => {
+    if (ref.current) ref.current.value = "";
+  });
+
+  return (
+    <>
+      {addTodo.error && (
+        <div className="alert alert-danger">{addTodo.error.message}</div>
+      )}
+
+      <form
+        className="row mb-3"
+        onSubmit={(event) => {
+          event.preventDefault();
+
+          if (ref.current && ref.current.value)
+            addTodo.mutate({
+              id: 0,
+              title: ref.current?.value,
+              completed: true,
+              userId: 1,
+            });
+        }}
+      >
+        <div className="col">
+          <input ref={ref} type="text" className="form-control" />
+        </div>
+        <div className="col">
+          <button disabled={addTodo.isLoading} className="btn btn-primary">
+            {addTodo.isLoading ? "Adding..." : "Add"}
+          </button>
+        </div>
+      </form>
+    </>
+  );
+};
+
+export default TodoForm;
+
+
+
+
+
+
+----------------------------------------------------->
+----------------------------------------------------->
+
+
+#6: Updating game-fusion project: 
+
+
+import { useQuery } from "@tanstack/react-query";
+import { GameQuery } from "../App";
+import apiClient, { FetchResponse } from "../services/api-client";
+import { Platform } from "./usePlatforms";
+
+export interface Game {
+    id: number;
+    name: string;
+    background_image: string;
+    parent_platforms: { platform: Platform }[];
+    metacritic: number;
+    rating_top: number;
+}
+
+const useGames = (gameQuery: GameQuery) =>
+    useQuery<FetchResponse<Game>, Error>({
+        queryKey: ["games", gameQuery],
+        queryFn: () =>
+            apiClient
+                .get<FetchResponse<Game>>("/games", {
+                    params: {
+                        genres: gameQuery.genre?.id,
+                        parent_platforms: gameQuery.platform?.id,
+                        ordering: gameQuery.sortOrder,
+                        search: gameQuery.searchText,
+                    },
+                })
+                .then((res) => res.data),
+    });
+
+export default useGames;
+
+
+----------------------------------------------------->
+
+import { useQuery } from "@tanstack/react-query";
+import genres from "../data/genres.ts";
+import apiClient, { FetchResponse } from "../services/api-client.ts";
+
+
+export interface Genre {
+    id: number;
+    name: string;
+    image_background: string;
+}
+
+const useGenres = () =>
+    useQuery({
+        queryKey: ["genres"],
+        queryFn: () =>
+            apiClient
+                .get<FetchResponse<Genre>>("/genres")
+                .then((res) => res.data),
+        staleTime: 24 * 60 * 60 * 1000, // 24hr
+        initialData: { count: genres.length, results: genres },
+    });
+
+export default useGenres;
+
+
+----------------------------------------------------->
+
+
+import { useQuery } from "@tanstack/react-query";
+import platforms from "../data/platforms";
+import apiClient, { FetchResponse } from "../services/api-client";
+
+export interface Platform {
+    id: number;
+    name: string;
+    slug: string;
+}
+
+const usePlatforms = () =>
+    useQuery({
+        queryKey: ["platforms"],
+        queryFn: () =>
+            apiClient
+                .get<FetchResponse<Platform>>("/platforms")
+                .then((res) => res.data),
+        staleTime: 24 * 60 * 60 * 1000, // 24hr
+        initialData: { count: platforms.length, results: platforms },
+    });
+
+export default usePlatforms;
+
+
+----------------------------------------------------->
+----------------------------------------------------->
+
+
+#7: Updating game-fusion project: 
+
+
+
+
+
+
+----------------------------------------------------->
+----------------------------------------------------->
+
+*** Global State Managemet: 
+
+
+#8: Consolidating State Logic with a reducer: 
+
+--> Using a reducer, we can take all the state management logic outside of a component and certralized it inside a single function.
+
+
+import { useReducer, useState } from "react";
+import counterReducer from "./reducers/counterReducer";
+
+const Counter = () => {
+    const [value, dispatch] = useReducer(counterReducer, 0);
+
+    return (
+        <div>
+            Counter ({value})
+            <button
+                onClick={() => dispatch({ type: "INCREMENT" })}
+                className="btn btn-primary mx-1"
+            >
+                Increment
+            </button>
+            <button
+                onClick={() => dispatch({ type: "RESET" })}
+                className="btn btn-primary mx-1"
+            >
+                Reset
+            </button>
+        </div>
+    );
+};
+
+export default Counter;
+
+
+
+
+interface Action {
+    type: string;
+}
+
+const counterReducer = (state: number, action: Action): number => {
+    if (action.type === "INCREMENT") return state + 1;
+    if (action.type === "RESET") return 0;
+    return state;
+};
+
+export default counterReducer;
+
+
+
+----------------------------------------------------->
+----------------------------------------------------->
+
+#8.2: Consolidating State Logic with a reducer: 
+
+
+interface Task {
+    id: number;
+    title: string;
+}
+
+interface AddTask {
+    type: "ADD";
+    task: Task;
+}
+
+interface DeleteTask {
+    type: "DELETE";
+    taskId: number;
+}
+
+type TaskAction = AddTask | DeleteTask;
+
+const taskReducer = (state: Task[], action: TaskAction): Task[] => {
+    switch (action.type) {
+        case "ADD":
+            return [action.task, ...state];
+
+        case "DELETE":
+            return state.filter((task) => task.id !== action.taskId);
+    }
+    return state;
+};
+
+export default taskReducer;
+
+
+import { useReducer, useState } from "react";
+import taskReducer from "./reducers/taskReducer";
+
+const TaskList = () => {
+    const [tasks, dispatch] = useReducer(taskReducer, []);
+    return (
+        <>
+            <button
+                onClick={() =>
+                    dispatch({
+                        type: "ADD",
+                        task: {
+                            id: Date.now(),
+                            title: "New Task" + Date.now().toPrecision(),
+                        },
+                    })
+                }
+                className="btn btn-primary my-3"
+            >
+                Add Task
+            </button>
+            <ul className="list-group">
+                {tasks.map((task) => (
+                    <li
+                        key={task.id}
+                        className="list-group-item d-flex justify-content-between align-items-center"
+                    >
+                        <span className="flex-grow-1">{task.title}</span>
+                        <button
+                            className="btn btn-outline-danger"
+                            onClick={() =>
+                                dispatch({ type: "DELETE", taskId: task.id })
+                            }
+                        >
+                            Delete
+                        </button>
+                    </li>
+                ))}
+            </ul>
+        </>
+    );
+};
+
+export default TaskList;
+
+
+function App() {
+    const [tasks, dispatch] = useReducer(taskReducer, []);
+    return (
+		<TaskList />
+    );
+}
+
+
+----------------------------------------------------->
+----------------------------------------------------->
+
+#9: React Context: sharing state using React Context: 
+
+
+import { Dispatch } from "react";
+import { Task, TaskAction } from "../reducers/taskReducer";
+import React from "react";
+
+interface TasksContextType {
+    tasks: Task[];
+    dispatch: Dispatch<TaskAction>;
+}
+
+const TasksContext = React.createContext<TasksContextType>(
+    {} as TasksContextType
+);
+
+export default TasksContext;
+
+----------------------------------------------------->
+
+import { useContext, useReducer } from "react";
+import "./App.css";
+import TasksContext from "./state-management/contexts/taskContext";
+import HomePage from "./state-management/HomePage";
+import NavBar from "./state-management/NavBar";
+import taskReducer from "./state-management/reducers/taskReducer";
+
+function App() {
+    const [tasks, dispatch] = useReducer(taskReducer, []);
+    return (
+        <TasksContext.Provider value={{ tasks, dispatch }}>
+            <NavBar />
+            <HomePage />
+        </TasksContext.Provider>
+    );
+}
+
+export default App;
+
+----------------------------------------------------->
+
+import { useContext } from "react";
+import TasksContext from "./contexts/taskContext";
+
+const TaskList = () => {
+    const { tasks, dispatch } = useContext(TasksContext);
+    return (
+        <>
+            <button
+                onClick={() =>
+                    dispatch({
+                        type: "ADD",
+                        task: {
+                            id: Date.now(),
+                            title: "New Task" + Date.now().toPrecision(),
+                        },
+                    })
+                }
+                className="btn btn-primary my-3"
+            >
+                Add Task
+            </button>
+            <ul className="list-group">
+                {tasks.map((task) => (
+                    <li
+                        key={task.id}
+                        className="list-group-item d-flex justify-content-between align-items-center"
+                    >
+                        <span className="flex-grow-1">{task.title}</span>
+                        <button
+                            className="btn btn-outline-danger"
+                            onClick={() =>
+                                dispatch({ type: "DELETE", taskId: task.id })
+                            }
+                        >
+                            Delete
+                        </button>
+                    </li>
+                ))}
+            </ul>
+        </>
+    );
+};
+
+export default TaskList;
+
+----------------------------------------------------->
+
+import { useContext } from "react";
+import LoginStatus from "./LoginStatus";
+import TasksContext from "./contexts/taskContext";
+
+const NavBar = () => {
+    const { tasks } = useContext(TasksContext);
+    return (
+        <nav className="navbar d-flex justify-content-between">
+            <span className="badge text-bg-secondary">{tasks.length}</span>
+            <LoginStatus />
+        </nav>
+    );
+};
+
+export default NavBar;
+
+----------------------------------------------------->
+
+import TaskList from './TaskList';
+
+const HomePage = () => {
+  return <TaskList />;
+};
+
+export default HomePage;
+
+
+
+----------------------------------------------------->
+----------------------------------------------------->
+
+#9.2: Exercise: use React Context to share state for LoginStatus:
+
+import React from "react";
+import { AuthAction } from "../reducers/loginReducer";
+
+interface LoginContextType {
+    username: string;
+    dispatch: React.Dispatch<AuthAction>;
+}
+
+const LoginContext = React.createContext<LoginContextType>({} as LoginContextType);
+
+export default LoginContext;
+
+----------------------------------------------------->
+
+
+import { useContext, useReducer } from "react";
+import LoginContext from "./contexts/loginContext";
+
+const LoginStatus = () => {
+    const { username: user, dispatch } = useContext(LoginContext);
+    if (user)
+        return (
+            <>
+                <div>
+                    <span className="mx-2">{user}</span>
+                    <a onClick={() => dispatch({ type: "Logout" })} href="#">
+                        Logout
+                    </a>
+                </div>
+            </>
+        );
+    return (
+        <div>
+            <a
+                onClick={() =>
+                    dispatch({ type: "Login", username: "sikatanju" })
+                }
+                href="#"
+            >
+                Login
+            </a>
+        </div>
+    );
+};
+
+export default LoginStatus;
+
+
+----------------------------------------------------->
+
+
+import { useReducer } from "react";
+import "./App.css";
+import LoginContext from "./state-management/contexts/loginContext";
+import LoginStatus from "./state-management/LoginStatus";
+import loginReducer from "./state-management/reducers/loginReducer";
+
+function App() {
+    const [username, dispatch] = useReducer(loginReducer, "");
+    return (
+        <LoginContext.Provider value={{ username, dispatch }}>
+            <LoginStatus />
+        </LoginContext.Provider>
+    );
+}
+
+export default App;
+
+
+----------------------------------------------------->
+
+
+function App() {
+    const [tasks, taskDispatch] = useReducer(taskReducer, []);
+
+    const [username, loginDispatch] = useReducer(loginReducer, "");
+
+    return (
+        <LoginContext.Provider value={{ username, dispatch: loginDispatch }}>
+            <TasksContext.Provider value={{ tasks, dispatch: taskDispatch }}>
+                <NavBar />
+                <HomePage />
+            </TasksContext.Provider>
+        </LoginContext.Provider>
+    );
+}
+
+
+ 
+----------------------------------------------------->
+----------------------------------------------------->
+
+#10: Creating a custom Provider for modularity & reusability:
+
+
+
+import React, { ReactNode, useReducer } from "react";
+import loginReducer from "./reducers/loginReducer";
+import LoginContext from "./contexts/loginContext";
+
+interface Props {
+    children: ReactNode;
+}
+
+const LoginProvider = ({ children }: Props) => {
+    const [username, dispatch] = useReducer(loginReducer, "");
+
+    return (
+        <LoginContext.Provider value={{ username, dispatch }}>
+            {children}
+        </LoginContext.Provider>
+    );
+};
+
+export default LoginProvider;
+
+
+
+----------------------------------------------------->
+
+
+
+import { useReducer } from "react";
+import "./App.css";
+import TasksContext from "./state-management/contexts/taskContext";
+import HomePage from "./state-management/HomePage";
+import LoginProvider from "./state-management/LoginProvider";
+import NavBar from "./state-management/NavBar";
+import taskReducer from "./state-management/reducers/taskReducer";
+
+function App() {
+    const [tasks, taskDispatch] = useReducer(taskReducer, []);
+
+    return (
+        <LoginProvider>
+            <TasksContext.Provider value={{ tasks, dispatch: taskDispatch }}>
+                <NavBar />
+                <HomePage />
+            </TasksContext.Provider>
+        </LoginProvider>
+    );
+}
+
+export default App;
+
+
+
+ 
+----------------------------------------------------->
+----------------------------------------------------->
+
+#11: Creating a custom hook:
+
+
+import { useContext } from "react";
+import LoginContext from "../contexts/loginContext";
+
+const useLogin = () => useContext(LoginContext);
+
+export default useLogin;
+
+----------------------------------------------------->
+
+const LoginStatus = () => {
+    const { username: user, dispatch } = useLogin();
+	
+	// ... Rest of the code 
+};
+
+export default LoginStatus;
+ 
+
+----------------------------------------------------->
+----------------------------------------------------->
+
+
+# 12: Creating a custom Provider & hook for task: 
+
+import React, { ReactNode, useReducer } from "react";
+import taskReducer from "./reducers/taskReducer";
+import TasksContext from "./contexts/taskContext";
+
+interface Props {
+    children: ReactNode;
+}
+
+const TaskProvider = ({ children }: Props) => {
+    const [tasks, dispatch] = useReducer(taskReducer, []);
+    return (
+        <TasksContext.Provider value={{ tasks, dispatch }}>
+            {children}
+        </TasksContext.Provider>
+    );
+};
+
+export default TaskProvider;
+
+ 
+----------------------------------------------------->
+
+import { useContext } from "react";
+import TasksContext from "../contexts/taskContext";
+
+const useTask = () => useContext(TasksContext);
+
+export default useTask;
+
+
+ 
+----------------------------------------------------->
+
+import useLogin from "./hooks/useLogin";
+import useTask from "./hooks/useTask";
+
+const TaskList = () => {
+    const { tasks, dispatch } = useTask();
+    const { username } = useLogin();
+	
+	return (
+        <>
+		// Rest of the code...
+		</>
+	);
+}
+
+export default TaskList;
+
+
+
+----------------------------------------------------->
+----------------------------------------------------->
+
+
+# 13:

@@ -1,24 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import { CACHE_KEY_TODOS } from "../constants";
+import APIClient from "../services/api-client";
+import Todoservice, { Todo } from "../services/Todoservice";
 
-export interface Todo {
-  id: number;
-  title: string;
-  userId: number;
-  completed: boolean;
-}
-
-const useTodos = () => {
-  const fetchTodos = () =>
-    axios
-      .get<Todo[]>("https://jsonplaceholder.typicode.com/todos")
-      .then((res) => res.data);
+function useTodos() {
+  // const fetchTodos = () =>
+  //   axios
+  //     .get<Todo[]>("https://jsonplaceholder.typicode.com/todos")
+  //     .then((res) => res.data);
+  const apiClient = new APIClient<Todo>("/todos");
 
   return useQuery<Todo[], Error>({
-    queryKey: ["todos"],
-    queryFn: fetchTodos,
-    staleTime: 300_000,
+    queryKey: CACHE_KEY_TODOS,
+    queryFn: Todoservice.getAll,
+    staleTime: 300000,
   });
-};
+}
 
 export default useTodos;

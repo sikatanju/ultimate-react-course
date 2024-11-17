@@ -8,7 +8,7 @@ function App() {
     <>
       <TodoForm />
       {/* <PostList /> */}
-      <TodoList />;
+      <TodoList />
     </>
   );
 }
