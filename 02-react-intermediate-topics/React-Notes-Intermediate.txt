@@ -1476,4 +1476,200 @@ export default TaskList;
 ----------------------------------------------------->
 
 
-# 13:
+# 13: Organizing Code for Scalibility & Maintainability -> See Code.
+ 
+
+
+# 14: --> 
+
+
+React Context: A context should only hold values that are closely related and Tend to change together.
+
+Minimizing Renders: Split up a context into smaller and focused ones, each having a single responsibility. 
+
+Server State & Client (UI) State: We should avoid using context for storing and sharing `server state`. We should let react-query to manage the server state for us.
+
+*** Context & Redux. -> Statemanagement tool.
+
+
+
+
+----------------------------------------------------->
+----------------------------------------------------->
+
+
+# 16: Managing application state with `Zustand`: 
+
+
+import { create } from "zustand";
+
+interface CounterStore {
+    counter: number;
+    increment: () => void;
+    reset: () => void;
+}
+
+create<CounterStore>((set) => ({
+    counter: 0,
+    increment: () => set((store) => ({ counter: store.counter + 1 })),
+    reset: () => set(() => ({ counter: 0 })),
+}));
+
+
+----------------------------------------------------->
+
+import useCounterStore from "./store";
+
+const Counter = () => {
+    const { counter, increment, reset } = useCounterStore();
+
+    return (
+        <div>
+            Counter ({counter})
+            <button
+                onClick={() => increment()}
+                className="btn btn-primary mx-1"
+            >
+                Increment
+            </button>
+            <button onClick={() => reset()} className="btn btn-primary mx-1">
+                Reset
+            </button>
+        </div>
+    );
+};
+
+export default Counter;
+
+
+
+----------------------------------------------------->
+----------------------------------------------------->
+
+# 17: Exercise with 'Zustand': 
+
+
+import { create } from "zustand";
+
+interface LoginStore {
+    username: string;
+    login: (username: string) => void;
+    logout: () => void;
+}
+
+const useLoginStore = create<LoginStore>((set) => ({
+    username: '',
+    login: (username) => set(() => ({ username: username })),
+    logout: () => set(() => ({ username: undefined })),
+}));
+
+export default useLoginStore;
+
+
+----------------------------------------------------->
+
+import useLoginStore from "./loginStore";
+
+const LoginStatus = () => {
+    const { username, login, logout } = useLoginStore();
+    if (username)
+        return (
+            <>
+                <div>
+                    <span className="mx-2">{username}</span>
+                    <a onClick={() => logout()} href="#">
+                        Logout
+                    </a>
+                </div>
+            </>
+        );
+    return (
+        <div>
+            <a onClick={() => login("sikatanju")} href="#">
+                Login
+            </a>
+        </div>
+    );
+};
+
+export default LoginStatus;
+
+
+
+
+----------------------------------------------------->
+----------------------------------------------------->
+
+
+# 18: Preventing Unnecessary Renders:  
+
+
+import { create } from "zustand";
+
+interface CounterStore {
+    counter: number;
+    max: number;
+    increment: () => void;
+    reset: () => void;
+}
+
+const useCounterStore = create<CounterStore>((set) => ({
+    counter: 0,
+    max: 5,
+    increment: () => set((store) => ({ counter: store.counter + 1 })),
+    reset: () => set((store) => ({ max: store.max + 5 })),
+}));
+
+export default useCounterStore;
+
+
+----------------------------------------------------->
+
+
+import { useContext } from "react";
+
+import TasksContext from "./tasks/taskContext";
+import LoginStatus from "./login/LoginStatus";
+import useCounterStore from "./counter/store";
+
+const NavBar = () => {
+	console.log('Render Navbar');
+    const { tasks } = useContext(TasksContext);
+    const { counter } = useCounterStore();
+    return (
+        <nav className="navbar d-flex justify-content-between">
+            <span className="badge text-bg-secondary">{counter}</span>
+            <LoginStatus />
+        </nav>
+    );
+};
+
+export default NavBar;
+
+
+// -> Here in above implementation whether we call the increment function or reset function, it will re-render, but we're only using the `counter` property in Navbar
+// -> to fix this problem, we could specify property for which this component will re-render.
+
+import { useContext } from "react";
+
+import TasksContext from "./tasks/taskContext";
+import LoginStatus from "./login/LoginStatus";
+import useCounterStore from "./counter/store";
+
+const NavBar = () => {
+    console.log("Render Navbar");
+
+    const { tasks } = useContext(TasksContext);
+	
+	// -> Here instead of an object, we only get the counter property.
+    const counter = useCounterStore(ss => ss.counter); 
+	
+    return (
+        <nav className="navbar d-flex justify-content-between">
+            <span className="badge text-bg-secondary">{counter}</span>
+            <LoginStatus />
+        </nav>
+    );
+};
+
+export default NavBar;

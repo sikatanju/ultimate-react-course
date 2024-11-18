@@ -1,16 +1,13 @@
-import { useContext } from "react";
-import LoginContext from "./loginContext";
-import useLogin from "./useLogin";
-
+import useLoginStore from "./loginStore";
 
 const LoginStatus = () => {
-    const { username: user, dispatch } = useLogin();
-    if (user)
+    const { username, login, logout } = useLoginStore();
+    if (username)
         return (
             <>
                 <div>
-                    <span className="mx-2">{user}</span>
-                    <a onClick={() => dispatch({ type: "Logout" })} href="#">
+                    <span className="mx-2">{username}</span>
+                    <a onClick={() => logout()} href="#">
                         Logout
                     </a>
                 </div>
@@ -18,12 +15,7 @@ const LoginStatus = () => {
         );
     return (
         <div>
-            <a
-                onClick={() =>
-                    dispatch({ type: "Login", username: "sikatanju" })
-                }
-                href="#"
-            >
+            <a onClick={() => login("sikatanju")} href="#">
                 Login
             </a>
         </div>
