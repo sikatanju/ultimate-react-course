@@ -1673,3 +1673,192 @@ const NavBar = () => {
 };
 
 export default NavBar;
+
+
+
+----------------------------------------------------->
+----------------------------------------------------->
+
+
+# 19: Setting up zustand in game-fusion project:  
+
+----> Done.
+
+
+
+
+
+----------------------------------------------------->
+----------------------------------------------------->
+----------------------------------------------------->
+
+*** Routing 
+
+
+# 20: Setting up router: 
+
+import path from "path";
+import { createBrowserRouter } from "react-router-dom";
+import HomePage from "./HomePage";
+import UserListPage from "./UserListPage";
+
+const router = createBrowserRouter([
+    { path: "/", element: <HomePage /> },
+    { path: "/users", element: <UserListPage /> },
+]);
+
+export default router;
+
+
+----------------------------------------------------->
+-> In main.tsx, we added this :
+
+
+import "bootstrap/dist/css/bootstrap.css";
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+
+import "./index.css";
+import { RouterProvider } from "react-router-dom";
+import router from "./routing/routes";
+
+const queryClient = new QueryClient();
+
+ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+    <QueryClientProvider client={queryClient}>
+        <React.StrictMode>
+            <RouterProvider router={router} />
+            <ReactQueryDevtools />
+        </React.StrictMode>
+    </QueryClientProvider>
+);
+
+
+
+
+
+----------------------------------------------------->
+----------------------------------------------------->
+
+
+# 21: Using the link component for navigating:
+
+
+import { Link } from "react-router-dom";
+
+const HomePage = () => {
+    return (
+        <>
+            <p>
+                Lorem ipsum dolor sit amet consectetur, adipisicing elit.
+                Incidunt, mollitia!
+            </p>
+            <Link to="/users" >users</Link>
+            {/* <a href="/users">Users</a> */}
+        </>
+    );
+};
+
+export default HomePage;
+
+
+----------------------------------------------------->
+// Also we use navigate() for navigating: When the use submits the form, it will take the user to the homepage.
+
+
+import { useNavigate } from "react-router-dom";
+
+const ContactPage = () => {
+    const navigate = useNavigate();
+    return (
+        <form
+            onSubmit={(event) => {
+                event.preventDefault();
+                // Redirect the user to the home page
+                navigate("/");
+            }}
+        >
+            <button className="btn btn-primary">Submit</button>
+        </form>
+    );
+};
+
+export default ContactPage;
+
+
+
+----------------------------------------------------->
+----------------------------------------------------->
+
+
+# 22: Passing data with router params: 
+
+import path from "path";
+import { createBrowserRouter } from "react-router-dom";
+import HomePage from "./HomePage";
+import UserListPage from "./UserListPage";
+import ContactPage from "./ContactPage";
+import UserDetailPage from "./UserDetailPage";
+
+const router = createBrowserRouter([
+    { path: "/", element: <HomePage /> },
+    { path: "/users", element: <UserListPage /> },
+    { path: "/users/:id", element: <UserDetailPage /> },
+    { path: "/contact", element: <ContactPage /> },
+]);
+
+export default router;
+
+
+----------------------------------------------------->
+
+
+import { Link } from "react-router-dom";
+
+const UserListPage = () => {
+  const users = [
+    { id: 1, name: 'Mosh' },
+    { id: 2, name: 'John' },
+    { id: 3, name: 'Alice' },
+  ];
+  return (
+    <ul className="list-group">
+      {users.map((user) => (
+        <li className="list-group-item" key={user.id}>
+          <Link to={`/users/${user.id}`}>{user.name}</Link>
+        </li>
+      ))}
+    </ul>
+  );
+};
+
+
+export default UserListPage;
+
+
+
+----------------------------------------------------->
+----------------------------------------------------->
+
+
+# 23: Getting Data about the current route: 
+
+
+
+import { useLocation, useParams, useSearchParams } from "react-router-dom";
+
+const UserDetailPage = () => {
+    const params = useParams();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const location = useLocation();
+
+    console.log(params);
+    console.log(searchParams.toString());
+    console.log(location);
+
+    return <p>User</p>;
+};
+
+export default UserDetailPage;
